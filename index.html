@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Counter CRUD App</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Counter: <span id="counter">Loading...</span></h1>
+  <button id="incBtn1">Increment +1</button>
+  <button id="incBtn10">Increment +10</button>
+  <button id="setBtn">Set to 100</button>
+  <button id="delBtn">Delete</button>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+    apiKey: "AIzaSyAC0dpAyOj00cWjq7E8eVg0cib_0QGp9qI",
+    authDomain: "final-project-webdev-69fb5.firebaseapp.com",
+    databaseURL: "https://final-project-webdev-69fb5-default-rtdb.firebaseio.com",
+    projectId: "final-project-webdev-69fb5",
+    storageBucket: "final-project-webdev-69fb5.firebasestorage.app",
+    messagingSenderId: "38087116651",
+    appId: "1:38087116651:web:738d508f4a81545f3eae2e",
+    measurementId: "G-6QYNJK7V9G"
+};
+
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Sign in anonymously
+firebase.auth().onAuthStateChanged(user => {
+    if (user) {
+    const db = firebase.database();
+    const counterRef = db.ref("counter");
+
+    counterRef.once("value").then(snapshot => {
+        const val = snapshot.val();
+        if (val === null) {
+        counterRef.set(0);
+        document.getElementById("counter").innerText = 0;
+        } else {
+        document.getElementById("counter").innerText = val;
+        }
+    });
+
+    // Realtime listener
+    counterRef.on("value", snapshot => {
+        if (snapshot.exists()) {
+        document.getElementById("counter").innerText = snapshot.val();
+        }
+    });
+
+    document.getElementById("incBtn1").onclick = () => {
+        counterRef.transaction(current => (current || 0) + 1);
+    };
+
+    document.getElementById("incBtn10").onclick = () => {
+        counterRef.transaction(current => (current || 0) + 10);
+    };
+
+    document.getElementById("setBtn").onclick = () => {
+        counterRef.set(100);
+    };
+
+    document.getElementById("delBtn").onclick = () => {
+        counterRef.remove();
+        document.getElementById("counter").innerText = "Deleted";
+    };
+
+    } else {
+    firebase.auth().signInAnonymously().catch(error => {
+        console.error("Anonymous sign-in failed", error);
+    });
+    }
+});
+  </script>
+</body>
+</html>
